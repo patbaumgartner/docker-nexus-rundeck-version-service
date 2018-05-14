@@ -1,1 +1,1 @@
-docker build --no-cache -t revendex/revendex-templates:latest .
+docker build --no-cache -t migrosbank/nexus-rundeck-version-service:latest .

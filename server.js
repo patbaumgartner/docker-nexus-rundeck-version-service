@@ -1,52 +1,43 @@
-const express = require("express");
-const axios = require("axios");
-const capitalize = require("capitalize");
-
+const express       = require("express");
+const axios         = require("axios");
+const capitalize    = require("capitalize");
+const xpath         = require('xpath')
+const dom           = require('xmldom').DOMParser
 
 // Constants
-const PORT = 80;
-const URL = "https://build.revendex.com/nexus/service/siesta/rest/beta/search/assets?repository=docker-internal";
+const PORT = 8181;
+const URL = " http://mbztx30404.migrosbank.ch/nexus/service/local/lucene/search";
 
-function createPortatinerTemplate(items){
-    var templates = [];
-    for (var i = 0; i < items.length; i++) {
-        var pathElements = items[i].path.split("/");
-
-        var repository = pathElements[1];
-        var image = pathElements[2];
-        var titleElements = image.split("-");
-        
-        var product = capitalize(titleElements[0]);
-        var category = capitalize(titleElements[1]);
-        var title = capitalize(titleElements[2]);
-        var version = pathElements[4];
-
-        templates.push(
-            {
-                "type": "container",
-                "title": title + " " + category + " (" + version + ")",
-                "description": "Revendex Primedex " + title + " " + category,
-                "image": repository + "/" + image + ":" + version,
-                "registry": "docker.revendex.com",
-                "network": "host",
-                "restart_policy": "unless-stopped",
-                "platform": "linux"
-                
-            }
-        );
+function createVersionTemplate(data){
+    var versions = [];
+    var doc = new dom().parseFromString(data)
+    var nodes = xpath.select("//version", doc)
+    var latest = false
+    for (i = 0; i < nodes.length; i++) { 
+        var currentVersion = nodes[i].firstChild.data
+        if(currentVersion.includes("SNAPSHOT") && latest === false){
+            currentVersion = "LATEST"
+            latest=true
+        }
+        versions.push(currentVersion)
     }
-    return templates;
+    
+    
+    return versions;
 }
 
 // App
 var app = express();
 
-app.get('/revendex/template.json', function (req, res){
+// call with -> http://localhost/versions?r=releases&g=ch.migrosbank.web&a=valor-search
+app.get('/versions', function (req, res){
+    // http://mbztx30404.migrosbank.ch/nexus/service/local/artifact/maven/resolve?p=war&r=releases&g=ch.migrosbank.web&a=valor-search&v=LATEST
+    // http://mbztx30404.migrosbank.ch/nexus/service/local/lucene/search?p=war&r=releases&g=ch.migrosbank.web&a=valor-search
+    var url = URL + "?p=war&r=" + req.query.r +"&g=" + req.query.g + "&a=" + req.query.a;
     axios
-        .get(URL)
+        .get(url)
         .then(response => {
-            console.log(response.data);
-            res.json(createPortatinerTemplate(response.data.items));
+            res.json(createVersionTemplate(response.data));
     })
     .catch(error => {
         console.log(error);
@@ -54,4 +45,4 @@ app.get('/revendex/template.json', function (req, res){
 });
 
 app.listen(PORT);
-console.log('Primedex templates running on http://localhost:' + PORT);
+console.log('Migrosbank nexus-rundeck-version-service running on http://localhost:' + PORT);

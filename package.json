@@ -2,7 +2,7 @@
   "name": "docker-revendex-templates",
   "version": "1.0.0",
   "description": "docker-revendex-templates",
-  "repository": "ssh://git@build.revendex.com:29418/development/collaboration-tools",
+  "repository": "ssh://git@mbztx30263.migrosbank.ch/gerrit/utils/docker-nexus-rundeck-version-service",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -13,6 +13,8 @@
   "dependencies": {
     "axios": "^0.17.1",
     "capitalize": "^1.0.0",
-    "express": "^4.16.2"
+    "express": "^4.16.2",
+    "xmldom": "^0.1.27",
+    "xpath": "0.0.27"
   }
 }
